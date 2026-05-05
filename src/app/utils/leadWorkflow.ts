@@ -31,12 +31,18 @@ export const leadStatusOptions: Array<{
     label: 'Cliente Exitoso',
     shortLabel: 'Cliente',
     color: 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-200 dark:border-violet-500/20'
+  },
+  {
+    value: 4,
+    label: 'Descartado',
+    shortLabel: 'Descartado',
+    color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-200 dark:border-slate-500/20'
   }
 ];
 
 export function normalizeLeadStatus(status: unknown): LeadStatus {
   const parsed = Number(status);
-  return parsed === 0 || parsed === 1 || parsed === 2 || parsed === 3 ? parsed : 0;
+  return parsed === 0 || parsed === 1 || parsed === 2 || parsed === 3 || parsed === 4 ? parsed : 0;
 }
 
 export function getLeadStatusMeta(status: unknown) {

@@ -39,7 +39,7 @@ function number(value: unknown, fallback = 0) {
 
 function normalizeEstadoId(value: unknown): EstadoId {
   const parsed = Number(value);
-  return parsed === 0 || parsed === 1 || parsed === 2 || parsed === 3 ? parsed : 0;
+  return parsed === 0 || parsed === 1 || parsed === 2 || parsed === 3 || parsed === 4 ? parsed : 0;
 }
 
 function normalizeBusinessId(value: string) {

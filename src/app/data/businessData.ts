@@ -4,7 +4,7 @@ export interface SocialLink {
   href?: string;
 }
 
-export type EstadoId = 0 | 1 | 2 | 3;
+export type EstadoId = 0 | 1 | 2 | 3 | 4;
 
 export interface Business {
   id: string;

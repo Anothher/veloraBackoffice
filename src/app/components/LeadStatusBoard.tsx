@@ -67,7 +67,7 @@ export function LeadStatusBoard({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-5">
           {leadStatusOptions.map((status) => {
             const isActive = activeStatus === status.value;
 

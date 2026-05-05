@@ -146,6 +146,10 @@ export default function App() {
     });
   }, [businesses, searchQuery, filters]);
 
+  const visibleTableBusinesses = useMemo(() => {
+    return filteredBusinesses.filter((business) => business.estadoId !== 4);
+  }, [filteredBusinesses]);
+
   const categoryOptions = useMemo(() => {
     return Array.from(new Set(businesses.map((business) => business.category).filter(Boolean))).sort();
   }, [businesses]);
@@ -173,7 +177,7 @@ export default function App() {
       return `"${text.replace(/"/g, '""')}"`;
     };
 
-    const rows = filteredBusinesses.map((business) => [
+    const rows = visibleTableBusinesses.map((business) => [
       business.name,
       business.category,
       business.categoryGroup,
@@ -259,7 +263,7 @@ export default function App() {
               <>
                 <Filters categories={categoryOptions} value={filters} onFilterChange={setFilters} />
                 <BusinessTable
-                  businesses={filteredBusinesses}
+                  businesses={visibleTableBusinesses}
                   searchQuery={searchQuery}
                   onSearch={setSearchQuery}
                   onExport={handleExportBusinesses}
