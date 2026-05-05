@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
+import { LoginScreen } from './components/LoginScreen';
 import { KPICards } from './components/KPICards';
 import { Charts } from './components/Charts';
 import { DashboardRecommendations } from './components/DashboardRecommendations';
 import { BusinessTable } from './components/BusinessTable';
 import { BusinessDetail } from './components/BusinessDetail';
-import { Filters, FilterValues } from './components/Filters';
+import { CategoryFilterOption, Filters, FilterValues } from './components/Filters';
 import { LeadStatusBoard } from './components/LeadStatusBoard';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Business } from './data/businessData';
@@ -19,7 +20,12 @@ interface DashboardFilterPreset {
   filters?: Partial<FilterValues>;
 }
 
+const authStorageKey = 'velora-session';
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem(authStorageKey) === 'active';
+  });
   const [activeView, setActiveView] = useState('dashboard');
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(true);
@@ -29,10 +35,24 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterValues>({
     category: '',
+    leadStatus: '',
     hasPhone: '',
     hasWebsite: '',
     completeness: ''
   });
+
+  const handleLogin = () => {
+    localStorage.setItem(authStorageKey, 'active');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(authStorageKey);
+    setBusinesses([]);
+    setSelectedBusiness(null);
+    setIsDetailOpen(false);
+    setIsAuthenticated(false);
+  };
 
   const handleSelectBusiness = (business: Business) => {
     setSelectedBusiness(business);
@@ -79,6 +99,7 @@ export default function App() {
     setSearchQuery(searchQuery);
     setFilters({
       category: '',
+      leadStatus: '',
       hasPhone: '',
       hasWebsite: '',
       completeness: '',
@@ -88,6 +109,11 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setIsLoadingBusinesses(false);
+      return;
+    }
+
     let isMounted = true;
 
     async function loadBusinesses() {
@@ -110,7 +136,7 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const filteredBusinesses = useMemo(() => {
     return businesses.filter((business) => {
@@ -129,6 +155,9 @@ export default function App() {
 
       const matchesCategory = filters.category === '' || business.category === filters.category;
 
+      const matchesLeadStatus =
+        filters.leadStatus === '' || String(business.estadoId) === filters.leadStatus;
+
       const matchesPhone =
         filters.hasPhone === '' ||
         (filters.hasPhone === 'yes' && business.phone) ||
@@ -142,17 +171,40 @@ export default function App() {
       const matchesCompleteness =
         filters.completeness === '' || business.completeness === filters.completeness;
 
-      return matchesSearch && matchesCategory && matchesPhone && matchesWebsite && matchesCompleteness;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesLeadStatus &&
+        matchesPhone &&
+        matchesWebsite &&
+        matchesCompleteness
+      );
     });
   }, [businesses, searchQuery, filters]);
 
   const visibleTableBusinesses = useMemo(() => {
-    return filteredBusinesses.filter((business) => business.estadoId !== 4);
-  }, [filteredBusinesses]);
+    const shouldShowDiscarded = filters.leadStatus === '4';
+    return filteredBusinesses.filter((business) => business.estadoId !== 4 || shouldShowDiscarded);
+  }, [filteredBusinesses, filters.leadStatus]);
 
-  const categoryOptions = useMemo(() => {
-    return Array.from(new Set(businesses.map((business) => business.category).filter(Boolean))).sort();
+  const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
+    const counts = businesses
+      .filter((business) => business.estadoId !== 4)
+      .reduce((categoryCounts, business) => {
+        if (!business.category) return categoryCounts;
+
+        categoryCounts.set(business.category, (categoryCounts.get(business.category) ?? 0) + 1);
+        return categoryCounts;
+      }, new Map<string, number>());
+
+    return Array.from(counts.entries())
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => a.value.localeCompare(b.value));
   }, [businesses]);
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   const handleExportBusinesses = () => {
     const headers = [
@@ -213,7 +265,7 @@ export default function App() {
       <Sidebar activeView={activeView} onViewChange={setActiveView} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onLogout={handleLogout} />
 
         <main className="flex-1 overflow-y-auto p-6">
           <div className="container mx-auto">

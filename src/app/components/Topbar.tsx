@@ -1,9 +1,13 @@
-import { Bell, Moon, Sun, User } from 'lucide-react';
+import { Bell, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const themeStorageKey = 'velora-theme';
 
-export function Topbar() {
+interface TopbarProps {
+  onLogout: () => void;
+}
+
+export function Topbar({ onLogout }: TopbarProps) {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -53,6 +57,14 @@ export function Topbar() {
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#06B6D4] flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow">
           <User className="w-5 h-5 text-white" />
         </div>
+
+        <button
+          onClick={onLogout}
+          className="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors dark:bg-slate-900 dark:hover:bg-slate-800"
+          aria-label="Cerrar sesion"
+        >
+          <LogOut className="w-5 h-5 text-gray-600 dark:text-slate-300" />
+        </button>
       </div>
     </div>
   );
